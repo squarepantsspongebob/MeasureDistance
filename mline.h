@@ -50,10 +50,15 @@ private:
     double m_xEnd;
     double m_yEnd;
     int m_radius;
+    QString Lable;
+
     QLineF* line;
     QPointF* pStart;
     QPointF* pEnd;
-    QPoint dragPosition;
+
+    QPointF dragPosition;
+    QPointF preXY;
+
     int movable;
 
 signals:

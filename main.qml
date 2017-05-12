@@ -16,13 +16,19 @@ Window {
         MeasureLine{
             id: mLine1
             width: 140; height: 140
+            x: 300; y: 300
             color: "blue"
         }
-//    }
-//    MeasureLinePoint{
-//        id: mLinePoint1
-//        width: 400; height: 400
-//        xCenter: 100; yCenter: 100
-//        color:"red"
-//    }
+        MeasureLine{
+            id: mLine
+            width: 140; height: 140
+            x: 311; y: 311
+        }
+
+        Rectangle{
+            width: mLine1.width; height: mLine1.height
+            color:"red"
+            opacity: 0.0
+            x: mLine1.x; y: mLine1.y
+        }
 }

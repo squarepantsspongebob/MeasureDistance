@@ -1,7 +1,7 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include "mLine.h"
-#include "mPoint.h"
+#include "mAngle.h"
 
 int main(int argc, char *argv[])
 {
