@@ -2,6 +2,7 @@ import QtQuick 2.7
 import QtQuick.Window 2.2
 import Lines 1.0
 import Points 1.0
+import CurveM 1.0
 
 Window {
     visible: true

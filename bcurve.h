@@ -1,10 +1,10 @@
-#ifndef MLINE_H
-#define MLINE_H
+#ifndef BCURVE_H
+#define BCURVE_H
 
 #include <QQuickPaintedItem>
 #include <QColor>
 
-class MLine: public QQuickPaintedItem
+class BCurve: public QQuickPaintedItem
 {
     Q_OBJECT
     Q_PROPERTY(QString name READ name WRITE setName)
@@ -15,7 +15,7 @@ class MLine: public QQuickPaintedItem
     Q_PROPERTY(double yEnd READ yEnd WRITE setYEnd NOTIFY yEndChanged NOTIFY yEndChanged)
 
 public:
-    MLine(QQuickItem *parent=0);
+    BCurve(QQuickItem *parent=0);
 
     QString name() const;
     void setName(const QString &name);
@@ -49,14 +49,12 @@ private:
     double m_yStart;
     double m_xEnd;
     double m_yEnd;
-    QFont font;
     int m_radius;
-    QString lengthLable;
+    QString Lable;
 
     QLineF* line;
     QPointF* pStart;
     QPointF* pEnd;
-    QRect textRect;
 
     QPointF dragPosition;
     QPointF preXY;
@@ -71,4 +69,4 @@ signals:
     void yEndChanged();
 };
 
-#endif // MLINE_H
+#endif // BCURVE_H

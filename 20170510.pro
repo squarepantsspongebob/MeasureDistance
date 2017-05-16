@@ -5,7 +5,8 @@ CONFIG += c++11
 
 SOURCES += main.cpp \
     mLine.cpp \
-    mAngle.cpp
+    mAngle.cpp \
+    bcurve.cpp
 
 RESOURCES += qml.qrc
 
@@ -33,7 +34,9 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 HEADERS += \
     mLine.h \
-    mAngle.h
+    mAngle.h \
+    bcurve.h \
+    globalf.h
 
 DISTFILES += \
     20170510.pro.user
