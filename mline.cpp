@@ -5,13 +5,15 @@
 #include "globalf.h"
 
 MLine::MLine(QQuickItem *parent)
-    :QQuickPaintedItem(parent),m_color("black"),m_xStart(5), m_yStart(5),m_xEnd(100-5), m_yEnd(100-5), m_radius(10)
+    :QQuickPaintedItem(parent),m_color("blue"),m_colorHover("orange"),m_radius(10),movable(0)
 {
-    textRect = QRect(m_xEnd+10,m_yEnd-30,70,30);
     setAcceptHoverEvents(true);
     setAcceptedMouseButtons(Qt::LeftButton);
     QQuickItem::setCursor(QCursor(Qt::OpenHandCursor));
+    line = new QLineF(5, 5, 100-5, 100-5);
+    textRect = QRect(line->p2().x()+10,line->p2().y()-30,70,30);
 }
+
 QString MLine::name() const
 {
     return m_name;
@@ -35,115 +37,132 @@ void MLine::setColor (const QColor &color)
 
 double MLine::xStart() const
 {
-    return m_xStart;
+    return line->p1 ().x ();
 }
 
 void MLine::setXStart (const double &xStart)
 {
-    m_xStart = xStart;
+    line->setP1 (QPointF(xStart,line->p1().y ()));
 }
 
 double MLine::yStart() const
 {
-    return m_yStart;
+    return line->p1 ().y ();
 }
 
 void MLine::setYStart (const double &yStart)
 {
-    m_yStart = yStart;
+    line->setP1 (QPointF(line->p1 ().x (), yStart));
 }
 double MLine::xEnd() const
 {
-    return m_xEnd;
+    return line->p2 ().x ();
 }
 
 void MLine::setXEnd (const double &xEnd)
 {
-    m_xEnd = xEnd;
+    line->setP2(QPointF(xEnd, line->p2 ().y ()));
 }
 
 double MLine::yEnd() const
 {
-    return m_yEnd;
+    return line->p2 ().y ();
 }
 
 void MLine::setYEnd (const double &yEnd)
 {
-    m_yEnd = yEnd;
+    line->setP2(QPointF(line->p2 ().x (), yEnd));
 }
 
 void MLine::paint (QPainter *painter)
 {
+    // Line
     QPen pen(m_color,2);
     painter->setPen(pen);
     painter->setRenderHints(QPainter::Antialiasing, true);
-    line = new QLineF(m_xStart, m_yStart, m_xEnd, m_yEnd);
-    pStart = new QPointF(m_xStart, m_yStart);
-    pEnd = new QPointF(m_xEnd, m_yEnd);
-
     painter->drawLine(*line);
 
+    //Bezier Curve
+    QPainterPath path;
+    pen.setStyle (Qt::DotLine); painter->setPen (pen);
+    path.moveTo ((line->p1().x()+line->p2().x())/2, (line->p1().y()+line->p2().y())/2);
+    path.cubicTo (((textRect.topLeft ().x ()+textRect.topRight ().x ())/2+(line->p1().x()+line->p2().x())/2)/2,(line->p1().y()+line->p2().y())/2,((textRect.topLeft ().x ()+textRect.topRight ().x ())/2+(line->p1().x()+line->p2().x())/2)/2,(textRect.topLeft ().y ()+textRect.bottomLeft ().y ())/2,(textRect.topLeft ().x ()+textRect.topRight ().x ())/2,(textRect.topLeft ().y ()+textRect.bottomLeft ().y ())/2);
+    painter->drawPath (path);
+
+    //Points
+    pen.setStyle (Qt::SolidLine);
+    pen.setColor ("red"); pen.setWidth (m_radius);
+    painter->setPen (pen);
+    painter->drawPoint(line->p1 ());
+    painter->drawPoint(line->p2 ());
+
+    //Lable's Rectangle
+    //    if(textRect.contains (this->mapFromGlobal (QCursor::pos()).x (),this->mapFromGlobal (QCursor::pos ()).y ()))
+    //    {
+    //        pen.setColor("orange");
+    //        qDebug()<<"1";
+    //    }
+    //    else
+    //    {
+    //        pen.setColor ("blue");
+    //        qDebug()<<0;
+    //    }
+    pen.setColor("blue");
+    pen.setWidth(2);
+    pen.setStyle (Qt::DotLine);
+    painter->setPen (pen);
+    painter->setBrush (Qt::white);
+    painter->drawRect(textRect);
+
+    //Lable
+    painter->setBrush (Qt::transparent);
     font = painter->font();
     font.setPixelSize (16); font.setBold (true);
     painter->setFont (font);
-
-    pen.setStyle (Qt::DotLine);
-    painter->setPen (pen);
-    painter->drawRect(textRect);
     painter->drawText (textRect,Qt::AlignCenter,"11.50cm");
-
-    QPainterPath path;
-    path.moveTo ((m_xStart+m_xEnd)/2, (m_yStart+m_yEnd)/2);
-    path.cubicTo ((textRect.topLeft ().x ()+(m_xStart+m_xEnd)/2)/2,(m_yStart+m_yEnd)/2,(textRect.topLeft ().x ()+(m_xStart+m_xEnd)/2)/2,textRect.topLeft ().y (),textRect.topLeft ().x (),textRect.topLeft ().y ());
-    painter->drawPath (path);
-
-    pen.setColor ("red"); pen.setWidth (m_radius);
-    painter->setPen (pen);
-    painter->drawPoint(*pStart);
-    painter->drawPoint(*pEnd);
-
-
-
-    setWidth(dis(m_xStart, m_xEnd, textRect.bottomRight ().x ())+m_radius);
-    setHeight(dis(m_yStart,m_yEnd,textRect.bottomRight ().y ())+m_radius);
 }
 
 void MLine::mousePressEvent (QMouseEvent *event)
 {
     if(event->button()==Qt::LeftButton)
     {
-        if (QRectF(m_xStart-m_radius/2, m_yStart-m_radius/2, m_radius, m_radius).contains (event->pos()))
+        if (QRectF(line->p1().x()-m_radius/2, line->p1().y()-m_radius/2, m_radius, m_radius).contains (event->pos()))
         {
             movable = 1;
-            preXY=QPointF(x(),y());
-            dragPosition = event->globalPos ()-QPointF(m_xStart,m_yStart);
+            preP1 = line->p1 ();
+            dragPosition = event->globalPos ();
             MLine::setColor ("orange");
             event->accept();
         }
-        else if(QRectF(m_xEnd-m_radius/2, m_yEnd-m_radius/2, m_radius, m_radius).contains (event->pos()))
+        else if(QRectF(line->p2().x()-m_radius/2, line->p2().y()-m_radius/2, m_radius, m_radius).contains (event->pos()))
         {
             movable = 2;
-            preXY=QPointF(x(),y());
-            dragPosition = event->globalPos ()-QPointF(m_xEnd,m_yEnd);
-            MLine::setColor("orange");
-            event->accept ();
+            preP2 = line->p2 ();
+            dragPosition = event->globalPos ();
+            MLine::setColor ("orange");
+            event->accept();
         }
         else if(textRect.contains (event->pos ()))
         {
             movable = 4;
-            preXY = QPointF(textRect.topLeft ());
             dragPosition = event->globalPos ()-QPointF(textRect.topLeft ());
             MLine::setColor("orange");
             event->accept ();
         }
-        else
+        else if(lineContains(line->p1 (), line->p2 (),event->pos (), m_radius))
         {
             movable=3;
-            preXY = QPointF(x(),y());
-            dragPosition = event->globalPos ()-QPointF(x(),y());
+            preP1 = line->p1 ();
+            preP2 = line->p2 ();
+            dragPosition = event->globalPos ();
             MLine::setColor("orange");
             event->accept ();
         }
+        else
+        {QQuickPaintedItem::mousePressEvent (event);}
+    }
+    else{
+        QQuickPaintedItem::mousePressEvent (event);
     }
 }
 
@@ -152,61 +171,27 @@ void MLine::mouseMoveEvent(QMouseEvent *event)
     if(event->buttons() & Qt::LeftButton)
     {
         setCursor(Qt::ClosedHandCursor);
+
         if(movable==1){
-            double tempxstart = event->globalX ()-dragPosition.x ()+preXY.x ();
-            double tempystart = event->globalY ()-dragPosition.y ()+preXY.y ();
-            double tempxend = m_xEnd+x();
-            double tempyend = m_yEnd+y();
-            double newx=tempxstart<tempxend?tempxstart-m_radius/2:tempxend-m_radius/2;
-            double newy=tempystart<tempyend?tempystart-m_radius/2:tempyend-m_radius/2;
-            if ((newx>0) & (newx+abs(tempxend-tempxstart)+m_radius<parentItem ()->width ()))
-            {
-                setX(newx);
-                setXEnd(tempxend-x());
-                setXStart(tempxstart-x());
-            }
-            if((newy>0) & (newy+abs(tempyend-tempystart)+m_radius<parentItem()->height()))
-            {
-                setY(newy);
-                setYEnd(tempyend-y());
-                setYStart(tempystart-y());
-            }
+            QPointF tempP = event->globalPos ()-dragPosition;
+            line->setP1(preP1+tempP);
             update();
             event->accept();
         }
         else if(movable ==2)
         {
-            double tempxstart = m_xStart+x();
-            double tempystart = m_yStart+y();
-            double tempxend = event->globalX ()-dragPosition.x ()+preXY.x ();
-            double tempyend = event->globalY ()-dragPosition.y ()+preXY.y ();
-
-            double newx=tempxstart<tempxend?tempxstart-m_radius/2:tempxend-m_radius/2;
-            double newy=tempystart<tempyend?tempystart-m_radius/2:tempyend-m_radius/2;
-            if ((newx>0) & (newx+abs(tempxend-tempxstart)+m_radius<parentItem ()->width ()))
-            {
-                setX(newx);
-                setXEnd(tempxend-x());
-                setXStart(tempxstart-x());
-            }
-            if((newy>0) & (newy+abs(tempyend-tempystart)+m_radius<parentItem()->height()))
-            {
-                setY(newy);
-                setYEnd(tempyend-y());
-                setYStart(tempystart-y());
-            }
+            QPointF tempP = event->globalPos ()-dragPosition;
+            line->setP2(preP2+tempP);
             update();
             event->accept();
         }
         else if(movable==3)
         {
-            double tempX = event->globalX ()-dragPosition.x ();
-            double tempY = event->globalY ()-dragPosition.y ();
-            if(tempX>0 && tempX<parentItem()->width()-this->width ())
-                setX(tempX);
-            if(tempY>0 && tempY<parentItem ()->height ()-this->height ())
-                setY(tempY);
+            QPointF tempP = event->globalPos ()-dragPosition;
+            line->setP1(preP1+tempP);
+            line->setP2(preP2+tempP);
             event->accept();
+            update();
         }
         else if(movable == 4)
         {
@@ -214,6 +199,12 @@ void MLine::mouseMoveEvent(QMouseEvent *event)
             event->accept ();
             update();
         }
+        else{
+            QQuickPaintedItem::mouseMoveEvent (event);
+        }
+    }
+    else{
+        QQuickPaintedItem::mouseMoveEvent (event);
     }
 }
 
@@ -223,5 +214,70 @@ void MLine::mouseReleaseEvent (QMouseEvent *event)
     MLine::setColor ("blue");
     setCursor(Qt::OpenHandCursor);
     movable = 0;
+    event->accept ();
+}
+
+void MLine::hoverEnterEvent (QHoverEvent *event)
+{
+    Q_UNUSED(event);
+    if (QRectF(line->p1().x()-m_radius/2, line->p1().y()-m_radius/2, m_radius, m_radius).contains (event->pos()))
+    {
+        qDebug()<<"p1";
+        event->accept();
+    }
+    else if(QRectF(line->p2().x()-m_radius/2, line->p2().y()-m_radius/2, m_radius, m_radius).contains (event->pos()))
+    {
+        qDebug()<<"p2";
+        event->accept();
+    }
+    else if(textRect.contains (event->pos ()))
+    {
+        qDebug()<<"label";
+        event->accept ();
+    }
+    else if(lineContains(line->p1 (), line->p2 (),event->pos (), m_radius))
+    {
+        qDebug()<<"line";
+        event->accept ();
+    }
+    else
+    {
+        QQuickPaintedItem::hoverEnterEvent (event);
+//        nextItemInFocusChain()->hoverEnterEvent (event);
+    }
+}
+
+void MLine::hoverMoveEvent (QHoverEvent *event)
+{
+    Q_UNUSED(event);
+    if (QRectF(line->p1().x()-m_radius/2, line->p1().y()-m_radius/2, m_radius, m_radius).contains (event->pos()))
+    {
+        qDebug()<<"p1";
+        event->accept();
+    }
+    else if(QRectF(line->p2().x()-m_radius/2, line->p2().y()-m_radius/2, m_radius, m_radius).contains (event->pos()))
+    {
+        qDebug()<<"p2";
+        event->accept();
+    }
+    else if(textRect.contains (event->pos ()))
+    {
+        qDebug()<<"label";
+        event->accept ();
+    }
+    else if(lineContains(line->p1 (), line->p2 (),event->pos (), m_radius))
+    {
+        qDebug()<<"line";
+    }
+    else
+    {
+//        nextItemInFocusChain ()->hoverMoveEvent (event);
+    }
+}
+
+void MLine::hoverLeaveEvent (QHoverEvent *event)
+{
+    Q_UNUSED(event);
+    qDebug()<<"leave";
     event->accept ();
 }

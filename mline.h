@@ -41,25 +41,22 @@ protected:
     void mouseMoveEvent (QMouseEvent *event) Q_DECL_OVERRIDE;
     void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void mouseReleaseEvent (QMouseEvent *event) Q_DECL_OVERRIDE;
+    void hoverEnterEvent (QHoverEvent *event) Q_DECL_OVERRIDE;
+    void hoverMoveEvent (QHoverEvent *event) Q_DECL_OVERRIDE;
+    void hoverLeaveEvent (QHoverEvent *event) Q_DECL_OVERRIDE;
 
 private:
     QString m_name;
-    QColor m_color;
-    double m_xStart;
-    double m_yStart;
-    double m_xEnd;
-    double m_yEnd;
+    QColor m_color, m_colorHover, lineColor, pointColor, labelColor, bezierColor;
     QFont font;
     int m_radius;
     QString lengthLable;
 
     QLineF* line;
-    QPointF* pStart;
-    QPointF* pEnd;
     QRect textRect;
 
     QPointF dragPosition;
-    QPointF preXY;
+    QPointF preP1, preP2;
 
     int movable;
 

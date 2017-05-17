@@ -10,26 +10,20 @@ Window {
     height: 480
     title: qsTr("Hello World")
 
-//    Rectangle{
-//        width: 600; height: 400
-//        color:"blue"
-//        anchors.centerIn: parent
-        MeasureLine{
-            id: mLine1
-            width: 140; height: 140
-            x: 300; y: 300
-            color: "blue"
-        }
-        MeasureLine{
-            id: mLine
-            width: 140; height: 140
-            x: 311; y: 311
-        }
+    MeasureLine{
+        id: mLine1
+        anchors.fill: parent
+        xStart: 200; yStart: 200
+        xEnd: 400; yEnd:100
+        color: "blue"
+    }
 
-        Rectangle{
-            width: mLine1.width; height: mLine1.height
-            color:"red"
-            opacity: 0.0
-            x: mLine1.x; y: mLine1.y
-        }
+    MeasureLine{
+        id: mLine
+        anchors.fill: parent
+        xStart: 200; yStart: 100
+        xEnd: 200; yEnd: 400
+        color: "blue"
+    }
+
 }
